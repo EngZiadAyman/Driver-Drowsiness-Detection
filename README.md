@@ -1,111 +1,161 @@
+# 🚗💤 Driver Drowsiness Detection System
 
------
+> **Status:** Production‑Ready Prototype • **Language:** Python • **Author:** Eng. Ziad Ayman
 
-## 🚗 Driver Drowsiness Detection System: Real-Time Fatigue Analysis
+Welcome to the **Driver Drowsiness Detection System** — an AI‑powered solution designed to **save lives on the road** by detecting driver fatigue in real time using computer vision. Built with ❤️, tuned with precision, and crafted for real‑world safety.
 
-This project is a sophisticated **Computer Vision (CV)** solution designed to significantly enhance road safety by providing **real-time, non-intrusive monitoring** of the driver's alertness level. It leverages advanced facial landmark detection to identify critical fatigue indicators, primarily focusing on eye closure duration and head posture, ensuring immediate intervention when a threat is detected.
+---
 
------
+## ✨ Overview
 
-## 🚀 Key Features and Technical Specifications
+Fatigue is one of the leading causes of road accidents. This project provides a **real‑time drowsiness alert system** that tracks the driver’s eye state, head movement, and overall alertness using a standard webcam.
 
-| Feature | Description | Technology Used |
-| :--- | :--- | :--- |
-| **Precision Drowsiness Detection** | Analyzes the **Eye Aspect Ratio (EAR)** to accurately measure the percentage of eye closure over time, the most reliable metric for fatigue. | `MediaPipe Face Mesh` |
-| **Head Posture Monitoring** | Tracks the driver's **Head Pose** (Roll, Pitch, Yaw) to identify dangerous head nodding or significant distraction away from the road. | `MediaPipe Pose Estimation` |
-| **30-Frame Activation Threshold** | The critical alarm is only triggered after **30 consecutive frames** of detected drowsiness, minimizing false alarms while ensuring prompt response. | **Custom Frame Counter Logic** |
-| **Instant Audio Alert** | An immediate, intrusive sound alert is activated in a separate thread to guarantee the driver is roused without freezing the video stream. | `winsound` (Windows OS) & `threading` |
-| **Real-Time Display** | Overlays current status (`Drowsy` or `Alert`), frame counter, and the visual warning on the live camera feed. | `OpenCV` (`cv2`) |
+👉 When the system detects prolonged eye closure or abnormal head tilt, **an alarm is triggered instantly** to warn the driver.
 
------
+---
 
-## 🧐 In-Depth System Architecture and Logic
+## 🚀 Key Features
 
-The system operates on a continuous loop, processing each video frame individually to derive crucial metrics.
+### 👁️ Real‑Time Eye Monitoring (EAR)
 
-### 1\. Facial Landmark Extraction (The Input Layer)
+* Uses **Eye Aspect Ratio (EAR)** to detect long blinks & closed eyes.
+* Highly accurate, efficient, and works well under different lighting conditions.
 
-The project utilizes the powerful **MediaPipe Face Mesh** library to identify 468 3D facial landmarks per frame. From these landmarks, the system specifically targets those outlining the driver's eyes.
+### 🧠 Head Pose Tracking
 
-### 2\. Drowsiness Measurement: Eye Aspect Ratio (EAR)
+* Detects risky head movements: **Tilt, Nodding, Yawing**.
+* Helps identify microsleep or loss of focus.
 
-  * **Calculation:** The **Eye Aspect Ratio (EAR)** is calculated by measuring the ratio between the vertical distance (eye openness) and the horizontal distance (eye width) of the eye landmarks.
-    $$EAR = \frac{||p_2 - p_6|| + ||p_3 - p_5||}{2 \cdot ||p_1 - p_4||}$$
-    *Where $p_1$ to $p_6$ are the coordinates of the eye landmarks.*
-  * **Threshold:** A defined **EAR Threshold** (e.g., `earThresh = 0.28`) determines when an eye is considered 'closed'. When the calculated EAR drops below this value, the system registers a state of "potential drowsiness."
+### 🔊 Smart Audio Alert
 
-### 3\. Head Pose Estimation
+* Warning sound played in a separate thread.
+* No lag, no frame freezing — smooth experience.
 
-The **MediaPipe Pose Estimation** module provides the angular orientation of the head in three axes:
+### 🖥️ Interactive On‑Screen HUD
 
-  * **Roll:** Tilt along the nose axis (tilting the head to the left or right shoulder).
-  * **Pitch:** Tilt up and down (nodding).
-  * **Yaw:** Rotation left and right (looking away from the road).
+* Live values for EAR, head rotation, and drowsiness state.
+* Color indicators + status messages.
 
-These angles are compared against defined thresholds (`headThresh = 6` degrees) to detect dangerous movements indicating distraction or unconscious nodding.
+### ⚙️ Anti‑False Alarm Logic
 
-### 4\. The 30-Frame Counter Logic (The Core Trigger)
+* Alert triggers only after **30 consecutive frames** of drowsiness.
+* Prevents false alarms from normal blinking.
 
-This logic is crucial for distinguishing a natural blink from actual sleep:
+---
 
-  * **Counting:** If the `DriverState` evaluation (based on EAR and head pose) returns **"Drowsy"**, a dedicated variable (`consecutive_drowsy_frames`) is incremented.
-  * **Reset:** If the state returns to **"Alert"** (even for a single frame), the counter is immediately reset to zero, ensuring the driver must maintain a sleepy state for the full duration.
-  * **Trigger:** The alarm is activated only when:
-    $$consecutive\_drowsy\_frames \geq 30$$
+## 📁 Project Structure
 
-### 5\. Sound Alert Mechanism
-
-Since direct sound playback in Python often leads to video freezing (lag), a robust solution is implemented:
-
-  * **Library:** The built-in Windows library `winsound` is used for reliable, dependency-free audio output.
-  * **Concurrency:** The alert function (`play_alarm_sound`) runs in a separate **Thread** (`threading` module). This ensures that the continuous **CV frame processing** in the main thread is never interrupted by the sound execution, maintaining high frame rates.
-  * **State Control:** A global flag (`stop_alarm`) controls the sound loop. The loop continues to emit intermittent beeps until the driver's state becomes "Alert," at which point the flag is set to `True` and the sound thread terminates gracefully.
-
------
-
-## ⚙️ Installation and Execution
-
-### 1\. Requirements
-
-The project relies on standard Python Computer Vision libraries:
-
-```bash
-pip install opencv-python mediapipe
+```
+Driver-Drowsiness-Detection/
+├─ detection/
+│  ├─ face.py       # EAR calculation + eye landmarks
+│  ├─ pose.py       # Head rotation angles
+├─ main.py          # Main application loop
+├─ state.py         # Drowsiness logic / state machine
+├─ utils.py         # Helper functions
+├─ requirements.txt
+└─ README.md
 ```
 
-*(Note: `winsound` is a standard Windows library and requires no separate installation.)*
+---
 
-### 2\. Execution
+## 🛠️ Requirements
 
-To start the system, navigate to the project directory in your terminal and run:
+* Python 3.8+
+* OpenCV
+* MediaPipe
+* winsound (Windows only)
+
+Install everything:
 
 ```bash
+pip install -r requirements.txt
+```
+
+---
+
+## ▶️ How to Run
+
+```bash
+git clone https://github.com/EngZiadAyman/Driver-Drowsiness-Detection.git
+cd Driver-Drowsiness-Detection
+pip install -r requirements.txt
 python main.py
 ```
 
------
+🎥 The webcam launches automatically.
 
-## 👨‍💻 Project Structure (Code Detail)
+---
 
-The core functionality is distributed across several modules:
+## 🧮 Technical Breakdown
 
-| File/Module | Description | Relevance to Drowsiness |
-| :--- | :--- | :--- |
-| `main.py` | The entry point. Handles video capture, sequential processing, frame counting, and the final alarm activation logic (`consecutive_drowsy_frames`). | Contains the core `while cap.isOpened()` loop and the final trigger logic. |
-| `detection/face.py` | Calculates the **EAR**, detects blinking, and extracts the primary facial data used for the state evaluation. | Calculates the primary metric (EAR) for drowsiness. |
-| `detection/pose.py` | Responsible for processing the image with MediaPipe and calculating the Roll, Pitch, and Yaw angles of the head. | Provides head position data to flag distraction/nodding. |
-| `state.py` | Contains the `DriverState` class, which aggregates all metrics (EAR, Roll, Pitch, Yaw) and applies complex weighted logic to determine the final output state (`Drowsy` or `Alert`). | The decision-making engine of the system. |
+### 🔹 Eye Aspect Ratio (EAR)
 
------
+EAR formula:
 
-## 📝 License
+```
+EAR = (||p2-p6|| + ||p3-p5||) / (2 * ||p1-p4||)
+```
 
-This project is open-sourced under the **MIT License**.
+If EAR < threshold for 30 frames ⇒ **Drowsy**.
 
------
+### 🔹 Head Pose Estimation
 
-## 👤 Author
+Tracks:
 
-**Eng. Ziad Ayman**
+* **Roll** (tilt)
+* **Pitch** (nodding)
+* **Yaw** (turning)
 
-  * [GitHub Profile](https://www.google.com/search?q=https://github.com/EngZiadAyman)
+Values beyond the threshold = unsafe behavior.
+
+### 🔹 Alarm Logic
+
+* If state = Drowsy ➜ increase counter.
+* If counter ≥ 30 ➜ 🔔 **Trigger alarm**.
+* If driver reopens his eyes ➜ reset counter.
+
+---
+
+## 🔧 Adjustable Parameters
+
+| Parameter               | Meaning                        | Default |
+| ----------------------- | ------------------------------ | ------- |
+| `earThresh`             | Minimum acceptable EAR         | 0.28    |
+| `headThresh`            | Max allowed head tilt          | 6°      |
+| `ALARM_FRAME_THRESHOLD` | Frames before triggering alarm | 30      |
+
+Modify these inside `state.py` or `main.py`.
+
+---
+
+## 🌟 Future Improvements
+
+* 📱 Mobile App or Web Dashboard
+* ⚡ GPU acceleration
+* 🔉 Cross‑platform audio alert
+* 🧪 Deep Learning model for advanced fatigue detection
+* 📸 Automatic snapshot on alert
+
+---
+
+## 🧩 Contributing
+
+Contributions are welcome! 🙌
+
+1. Fork the repo
+2. Create a new branch
+3. Commit your changes clearly
+4. Open a Pull Request
+
+---
+
+## 📜 License
+
+Distributed under the **MIT License**.
+
+---
+
+## 📬 Contact
+
+For issues or collaboration, feel free to open a GitHub Issue.
